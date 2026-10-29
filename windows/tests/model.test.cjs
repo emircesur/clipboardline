@@ -113,3 +113,8 @@ test('fresh global defaults match Mac while old toggle choices and optional-off 
  const restored=new Store(dir);assert.equal(restored.data.settings.shortcuts.toggle,'Control+Alt+Space');assert.equal(restored.data.settings.shortcuts.library,'');assert.equal(restored.data.settings.shortcuts.copyLatest,'');
  restored.modify('setSettings',{patch:{shortcuts:{library:'Control+Alt+L',copyLatest:'Control+Alt+C'}}});assert.equal(new Store(dir).data.settings.shortcuts.library,'Control+Alt+L');restored.modify('setSettings',{patch:{shortcuts:{library:'',copyLatest:''}}});assert.equal(new Store(dir).data.settings.shortcuts.copyLatest,'');assert.throws(()=>restored.modify('setSettings',{patch:{shortcuts:{unknown:'Control+Alt+U'}}}),/Invalid shortcut/);
 }));
+test('a URL copied with surrounding whitespace keeps its link identity like macOS',()=>{
+ assert.equal(plainURL('https://example.com/path\n'),'https://example.com/path');assert.equal(plainURL('  https://example.com \r\n'),'https://example.com/');
+ assert.equal(plainURL('https://example.com/a b'),null);assert.equal(plainURL(' \n '),null);
+ fixture(s=>{const link=s.insert('link','https://example.com/\n');assert.equal(link.url,'https://example.com/');assert.equal(s.insert('link','https://example.com/').id,link.id);});
+});

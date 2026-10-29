@@ -82,8 +82,12 @@ function trashUndoFingerprint(item){return crypto.createHash('sha256').update(JS
 function trashUndoMatches(item,entry){return !!item&&item.trashedAt!=null&&item.trashedAt===entry.afterTrashedAt&&item.updatedAt===entry.afterUpdatedAt&&(item.captureRevision??null)===entry.captureRevision&&trashUndoFingerprint(item)===entry.fingerprint;}
 function availableTrashUndo(items,journal){if(!journal?.length)return false;const byID=new Map(items.map(item=>[item.id,item]));for(let index=journal.length-1;index>=0;index--)if(journal[index].some(entry=>trashUndoMatches(byID.get(entry.id),entry)))return true;return false;}
 function saved(item) { return item.retainedAt != null || item.pinned || item.folderIds.length > 0 || item.tags.length > 0; }
+// Match macOS LinkIdentity.standalone: a copied URL keeps its link identity
+// when the source adds a trailing newline or surrounding spaces.
 function plainURL(value) {
-  if (typeof value !== 'string' || /\s/.test(value) || value.length > 8192) return null;
+  if (typeof value !== 'string') return null;
+  value = value.replace(/^\p{White_Space}+|\p{White_Space}+$/gu, '');
+  if (!value || /\s/.test(value) || value.length > 8192) return null;
   try { const u = new URL(value); return ['http:', 'https:'].includes(u.protocol) && !u.username && !u.password ? u.href : null; } catch { return null; }
 }
 
