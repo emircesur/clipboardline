@@ -113,3 +113,9 @@ test('fresh global defaults match Mac while old toggle choices and optional-off 
  const restored=new Store(dir);assert.equal(restored.data.settings.shortcuts.toggle,'Control+Alt+Space');assert.equal(restored.data.settings.shortcuts.library,'');assert.equal(restored.data.settings.shortcuts.copyLatest,'');
  restored.modify('setSettings',{patch:{shortcuts:{library:'Control+Alt+L',copyLatest:'Control+Alt+C'}}});assert.equal(new Store(dir).data.settings.shortcuts.library,'Control+Alt+L');restored.modify('setSettings',{patch:{shortcuts:{library:'',copyLatest:''}}});assert.equal(new Store(dir).data.settings.shortcuts.copyLatest,'');assert.throws(()=>restored.modify('setSettings',{patch:{shortcuts:{unknown:'Control+Alt+U'}}}),/Invalid shortcut/);
 }));
+test('sibling folder names are unique ignoring case and diacritics like macOS',()=>fixture(s=>{
+ const work=s.modify('createFolder',{name:'Work'});assert.throws(()=>s.modify('createFolder',{name:' wörk '}),/already exists/);
+ const child=s.modify('createFolder',{name:'Work',parentId:work.id});assert.equal(child.parentId,work.id);
+ const other=s.modify('createFolder',{name:'Personal'});assert.throws(()=>s.modify('renameFolder',{id:other.id,name:'WORK'}),/already exists/);assert.equal(s.data.folders.find(folder=>folder.id===other.id).name,'Personal');
+ s.modify('renameFolder',{id:work.id,name:'work'});assert.equal(s.data.folders.find(folder=>folder.id===work.id).name,'work');
+}));
